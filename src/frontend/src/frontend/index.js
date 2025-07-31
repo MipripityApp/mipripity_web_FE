@@ -1,0 +1,23 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+
+// Get the root element from the HTML
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+// Render the App component wrapped with necessary providers
+root.render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ThemeProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);
