@@ -11,7 +11,7 @@
     "lint": "next lint",
     "migrate": "node src/backend/utils/runMigrations.js",
     "seed": "node src/backend/utils/seedData.js",
-    "client": "webpack serve --mode development",
+    "client": "webpack serve --mode production",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["property", "poll", "voting", "real estate", "mipripity"],
