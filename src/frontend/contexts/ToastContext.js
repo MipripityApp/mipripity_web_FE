@@ -8,8 +8,18 @@ import {
   FaTimes
 } from 'react-icons/fa';
 
-// Generate a unique ID for each toast
-const generateId = () => `toast_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
+// Generate a unique ID for each toast - safely handle Date.now()
+const generateId = () => {
+  try {
+    return `toast_${isBrowser ? Date.now() : '0'}_${Math.random().toString(36).substr(2, 9)}`;
+  } catch (error) {
+    console.error('Error generating toast ID:', error);
+    return `toast_${Math.random().toString(36).substr(2, 9)}`;
+  }
+};
 
 // Animation keyframes
 const slideIn = keyframes`
@@ -139,39 +149,72 @@ const toastIcons = {
  */
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
+  // Track if component is mounted to prevent state updates after unmount
+  const [isMounted, setIsMounted] = useState(false);
+  
+  // Set mounted state on component mount
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
   
   // Add toast
   const addToast = useCallback((options) => {
-    const id = generateId();
-    const toast = {
-      id,
-      type: options.type || 'info',
-      title: options.title || '',
-      message: options.message || '',
-      duration: options.duration || 5000, // Default 5 seconds
-      variant: options.variant || 'default',
-      isExiting: false,
-      progress: 100 // For progress bar animation
-    };
+    // Skip if not in browser or component is not mounted
+    if (!isBrowser || !isMounted) return null;
     
-    setToasts(prev => [...prev, toast]);
-    return id; // Return id for potential manual removal
-  }, []);
+    try {
+      const id = generateId();
+      const toast = {
+        id,
+        type: options.type || 'info',
+        title: options.title || '',
+        message: options.message || '',
+        duration: options.duration || 5000, // Default 5 seconds
+        variant: options.variant || 'default',
+        isExiting: false,
+        progress: 100 // For progress bar animation
+      };
+      
+      setToasts(prev => [...prev, toast]);
+      return id; // Return id for potential manual removal
+    } catch (error) {
+      console.error('Error adding toast:', error);
+      return null;
+    }
+  }, [isMounted]);
   
   // Remove toast
   const removeToast = useCallback((id) => {
-    // Mark as exiting for animation
-    setToasts(prev => 
-      prev.map(toast => 
-        toast.id === id ? { ...toast, isExiting: true } : toast
-      )
-    );
+    // Skip if not in browser or component is not mounted
+    if (!isBrowser || !isMounted) return;
     
-    // Remove after animation completes
-    setTimeout(() => {
-      setToasts(prev => prev.filter(toast => toast.id !== id));
-    }, 300);
-  }, []);
+    try {
+      // Mark as exiting for animation
+      setToasts(prev => 
+        prev.map(toast => 
+          toast.id === id ? { ...toast, isExiting: true } : toast
+        )
+      );
+      
+      // Remove after animation completes - safely use setTimeout
+      if (isBrowser && window.setTimeout) {
+        const timeoutId = window.setTimeout(() => {
+          if (isMounted) {
+            setToasts(prev => prev.filter(toast => toast.id !== id));
+          }
+        }, 300);
+        
+        return () => {
+          if (isBrowser && window.clearTimeout) {
+            window.clearTimeout(timeoutId);
+          }
+        };
+      }
+    } catch (error) {
+      console.error('Error removing toast:', error);
+    }
+  }, [isMounted]);
   
   // Shorthand methods for different toast types
   const success = useCallback((options) => {
@@ -192,49 +235,66 @@ export const ToastProvider = ({ children }) => {
   
   // Handle automatic toast removal and progress bar
   useEffect(() => {
-    if (toasts.length === 0) return;
+    // Skip if not in browser, no toasts, or component not mounted
+    if (!isBrowser || toasts.length === 0 || !isMounted) return;
+    if (!window.setInterval || !window.setTimeout) return;
     
-    const intervals = {};
-    const timeouts = {};
-    
-    toasts.forEach(toast => {
-      if (toast.isExiting) return;
+    try {
+      const intervals = {};
+      const timeouts = {};
       
-      // Update progress bar
-      const updateInterval = 100; // Update every 100ms
-      const steps = toast.duration / updateInterval;
-      let currentStep = 0;
+      toasts.forEach(toast => {
+        if (toast.isExiting) return;
+        
+        // Update progress bar
+        const updateInterval = 100; // Update every 100ms
+        const steps = toast.duration / updateInterval;
+        let currentStep = 0;
+        
+        intervals[toast.id] = window.setInterval(() => {
+          if (!isMounted) return;
+          
+          currentStep++;
+          const progress = 100 - (currentStep / steps * 100);
+          
+          setToasts(prev => 
+            prev.map(t => 
+              t.id === toast.id ? { ...t, progress: Math.max(progress, 0) } : t
+            )
+          );
+          
+          if (currentStep >= steps && window.clearInterval) {
+            window.clearInterval(intervals[toast.id]);
+          }
+        }, updateInterval);
+        
+        // Set timeout for removal
+        timeouts[toast.id] = window.setTimeout(() => {
+          if (isMounted) {
+            removeToast(toast.id);
+          }
+        }, toast.duration);
+      });
       
-      intervals[toast.id] = setInterval(() => {
-        currentStep++;
-        const progress = 100 - (currentStep / steps * 100);
-        
-        setToasts(prev => 
-          prev.map(t => 
-            t.id === toast.id ? { ...t, progress: Math.max(progress, 0) } : t
-          )
-        );
-        
-        if (currentStep >= steps) {
-          clearInterval(intervals[toast.id]);
+      // Cleanup
+      return () => {
+        if (window.clearInterval) {
+          Object.values(intervals).forEach(id => window.clearInterval(id));
         }
-      }, updateInterval);
-      
-      // Set timeout for removal
-      timeouts[toast.id] = setTimeout(() => {
-        removeToast(toast.id);
-      }, toast.duration);
-    });
-    
-    // Cleanup
-    return () => {
-      Object.values(intervals).forEach(clearInterval);
-      Object.values(timeouts).forEach(clearTimeout);
-    };
-  }, [toasts, removeToast]);
+        if (window.clearTimeout) {
+          Object.values(timeouts).forEach(id => window.clearTimeout(id));
+        }
+      };
+    } catch (error) {
+      console.error('Error in toast effect:', error);
+    }
+  }, [toasts, removeToast, isMounted]);
   
   // Render toasts
   const renderToasts = () => {
+    // Don't render toasts if not in browser
+    if (!isBrowser || !isMounted) return null;
+    
     return (
       <ToastContainer>
         {toasts.map(toast => (
@@ -301,7 +361,16 @@ export const useToast = () => {
   const context = useContext(ToastContext);
   
   if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
+    console.warn('useToast must be used within a ToastProvider');
+    // Return a dummy implementation instead of throwing an error
+    return {
+      addToast: () => null,
+      removeToast: () => {},
+      success: () => null,
+      error: () => null,
+      warning: () => null,
+      info: () => null
+    };
   }
   
   return context;

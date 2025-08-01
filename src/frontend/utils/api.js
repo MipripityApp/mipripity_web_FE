@@ -8,6 +8,9 @@ import axios from 'axios';
  * In production, it can use the absolute Render URL if needed.
  */
 
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
 // Base URL for API requests
 // In development, webpack proxies '/api' to localhost:3000
 // In production, '/api' will be handled by the same server serving the static files
@@ -21,11 +24,23 @@ const api = axios.create({
   },
 });
 
+// Helper function to safely get auth token
+const getAuthToken = () => {
+  try {
+    if (isBrowser && localStorage) {
+      return localStorage.getItem('authToken');
+    }
+  } catch (error) {
+    console.error('Error accessing localStorage:', error);
+  }
+  return null;
+};
+
 // Add request interceptor to include authentication token
 api.interceptors.request.use(
   async (config) => {
     // Get token from localStorage if available
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -36,6 +51,40 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Helper function to safely navigate
+const navigateTo = (path) => {
+  try {
+    if (isBrowser && window.location) {
+      window.location.href = path;
+    }
+  } catch (error) {
+    console.error('Error navigating:', error);
+  }
+};
+
+// Helper function to safely check current path
+const isCurrentPath = (path) => {
+  try {
+    if (isBrowser && window.location) {
+      return window.location.pathname === path;
+    }
+  } catch (error) {
+    console.error('Error checking path:', error);
+  }
+  return false;
+};
+
+// Helper function to safely remove auth token
+const removeAuthToken = () => {
+  try {
+    if (isBrowser && localStorage) {
+      localStorage.removeItem('authToken');
+    }
+  } catch (error) {
+    console.error('Error removing from localStorage:', error);
+  }
+};
+
 // Add response interceptor to handle common errors
 api.interceptors.response.use(
   (response) => response,
@@ -45,9 +94,9 @@ api.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // Unauthorized - clear token and redirect to login
-          localStorage.removeItem('authToken');
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
+          removeAuthToken();
+          if (!isCurrentPath('/login')) {
+            navigateTo('/login');
           }
           break;
           

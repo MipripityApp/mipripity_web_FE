@@ -81,9 +81,34 @@ export const useTheme = () => useContext(ThemeContext);
 
 // Theme provider component
 export const ThemeProvider = ({ children }) => {
-  // Check if user has saved theme preference
-  const savedTheme = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  // Safely check if browser APIs are available
+  const isBrowser = typeof window !== 'undefined';
+  
+  // Safely check for saved theme and dark mode preference
+  const getSavedTheme = () => {
+    try {
+      if (isBrowser) {
+        return localStorage.getItem('theme');
+      }
+    } catch (error) {
+      console.error('Error accessing localStorage:', error);
+    }
+    return null;
+  };
+  
+  const getPrefersDark = () => {
+    try {
+      if (isBrowser && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }
+    } catch (error) {
+      console.error('Error checking media query:', error);
+    }
+    return false;
+  };
+  
+  const savedTheme = getSavedTheme();
+  const prefersDark = getPrefersDark();
   
   // Initialize theme state
   const [isDarkMode, setIsDarkMode] = useState(
@@ -96,23 +121,46 @@ export const ThemeProvider = ({ children }) => {
   // Toggle between light and dark modes
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
-    localStorage.setItem('theme', !isDarkMode ? 'dark' : 'light');
+    try {
+      if (isBrowser) {
+        localStorage.setItem('theme', !isDarkMode ? 'dark' : 'light');
+      }
+    } catch (error) {
+      console.error('Error saving theme preference:', error);
+    }
   };
   
   // Listen for system theme changes
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    if (!isBrowser || !window.matchMedia) return;
     
-    const handleChange = (e) => {
-      if (localStorage.getItem('theme') === null) {
-        setIsDarkMode(e.matches);
+    try {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      const handleChange = (e) => {
+        try {
+          const savedTheme = localStorage.getItem('theme');
+          if (savedTheme === null) {
+            setIsDarkMode(e.matches);
+          }
+        } catch (error) {
+          console.error('Error checking saved theme:', error);
+        }
+      };
+      
+      // Use the appropriate event listener method
+      // (newer browsers use addEventListener, older ones use addListener)
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+      } else if (mediaQuery.addListener) {
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
       }
-    };
-    
-    mediaQuery.addEventListener('change', handleChange);
-    
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+    } catch (error) {
+      console.error('Error setting up media query listener:', error);
+    }
+  }, [isBrowser]);
   
   return (
     <ThemeContext.Provider value={{ theme, isDarkMode, toggleTheme }}>
