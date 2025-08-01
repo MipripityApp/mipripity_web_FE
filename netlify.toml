@@ -1,5 +1,5 @@
 [build]
-  base = "mipripity_web_FE"
+  base = "src/frontend"
   publish = "dist"
   command = "npm run build:frontend"
 
