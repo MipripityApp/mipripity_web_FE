@@ -20,9 +20,6 @@ const PropertiesPage = lazy(() => import('./pages/properties/PropertiesPage'));
 const PropertyDetailsPage = lazy(() => import('./pages/properties/PropertyDetailsPage'));
 const AddPropertyPage = lazy(() => import('./pages/properties/AddPropertyPage'));
 const EditPropertyPage = lazy(() => import('./pages/properties/EditPropertyPage'));
-const UsersPage = lazy(() => import('./pages/users/UsersPage'));
-const VotesPage = lazy(() => import('./pages/votes/VotesPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Styled components for layout
 const AppContainer = styled.div`
@@ -134,22 +131,6 @@ const App = () => {
                         <EditPropertyPage />
                       </PrivateRoute>
                     } 
-                  />
-                  <Route 
-                    path="/users"
-                    element={
-                      <PrivateRoute>
-                        <UsersPage />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route 
-                    path="/votes"
-                    element={
-                      <PrivateRoute>
-                        <VotesPage />
-                      </PrivateRoute>
-                    }
                   />
 
                   {/* Catch-all route */}
