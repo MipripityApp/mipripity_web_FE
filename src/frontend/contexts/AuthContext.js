@@ -1,26 +1,47 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  updateProfile as firebaseUpdateProfile,
-  sendPasswordResetEmail
-} from 'firebase/auth';
 import api from '../utils/api';
 
-// Initialize Firebase
-const app = initializeApp({
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID
-});
-const auth = getAuth(app);
+// Initialize Firebase conditionally
+let auth = null;
+let firebaseInitialized = false;
+
+try {
+  // Only import Firebase if we're in a browser environment
+  if (typeof window !== 'undefined') {
+    const { initializeApp } = require('firebase/app');
+    const { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged,
+      updateProfile,
+      sendPasswordResetEmail
+    } = require('firebase/auth');
+    
+    // Check if all required Firebase config variables are present
+    const firebaseConfig = {
+      apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+      authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.REACT_APP_FIREBASE_APP_ID
+    };
+    
+    // Only initialize if we have the API key at minimum
+    if (firebaseConfig.apiKey) {
+      const app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      firebaseInitialized = true;
+      console.log('Firebase initialized successfully');
+    } else {
+      console.warn('Firebase configuration is missing. Authentication features will be disabled.');
+    }
+  }
+} catch (error) {
+  console.error('Failed to initialize Firebase:', error);
+}
 
 // Create context
 const AuthContext = createContext();
@@ -32,19 +53,30 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false if Firebase isn't initialized
   const [error, setError] = useState(null);
+  
+  // Set initial loading state based on Firebase initialization
+  useEffect(() => {
+    setLoading(firebaseInitialized);
+  }, []);
 
   // Register new user
   const register = async (email, password, firstName, lastName, phoneNumber = null) => {
+    if (!firebaseInitialized) {
+      setError('Authentication is not available');
+      throw new Error('Authentication is not available');
+    }
+    
     try {
       setError(null);
       // Create user in Firebase
+      const { createUserWithEmailAndPassword, updateProfile } = require('firebase/auth');
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
       // Update Firebase profile
-      await firebaseUpdateProfile(user, {
+      await updateProfile(user, {
         displayName: `${firstName} ${lastName}`
       });
       
@@ -68,9 +100,15 @@ export const AuthProvider = ({ children }) => {
   
   // Login user
   const login = async (email, password) => {
+    if (!firebaseInitialized) {
+      setError('Authentication is not available');
+      throw new Error('Authentication is not available');
+    }
+    
     try {
       setError(null);
       // Sign in with Firebase
+      const { signInWithEmailAndPassword } = require('firebase/auth');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
@@ -91,7 +129,13 @@ export const AuthProvider = ({ children }) => {
   
   // Logout user
   const logout = async () => {
+    if (!firebaseInitialized) {
+      setError('Authentication is not available');
+      throw new Error('Authentication is not available');
+    }
+    
     try {
+      const { signOut } = require('firebase/auth');
       await signOut(auth);
       setUserData(null);
     } catch (err) {
@@ -126,8 +170,14 @@ export const AuthProvider = ({ children }) => {
   
   // Reset password
   const resetPassword = async (email) => {
+    if (!firebaseInitialized) {
+      setError('Authentication is not available');
+      throw new Error('Authentication is not available');
+    }
+    
     try {
       setError(null);
+      const { sendPasswordResetEmail } = require('firebase/auth');
       await sendPasswordResetEmail(auth, email);
     } catch (err) {
       console.error('Password reset error:', err);
@@ -157,6 +207,12 @@ export const AuthProvider = ({ children }) => {
   
   // Listen for Firebase auth state changes
   useEffect(() => {
+    if (!firebaseInitialized) {
+      setLoading(false);
+      return () => {};
+    }
+    
+    const { onAuthStateChanged } = require('firebase/auth');
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       

@@ -20,6 +20,7 @@ const PropertiesPage = lazy(() => import('./pages/properties/PropertiesPage'));
 const PropertyDetailsPage = lazy(() => import('./pages/properties/PropertyDetailsPage'));
 const AddPropertyPage = lazy(() => import('./pages/properties/AddPropertyPage'));
 const EditPropertyPage = lazy(() => import('./pages/properties/EditPropertyPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Styled components for layout
 const AppContainer = styled.div`
