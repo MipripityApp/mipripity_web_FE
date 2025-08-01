@@ -11,19 +11,15 @@ import {
 } from 'firebase/auth';
 import api from '../utils/api';
 
-// Firebase configuration with actual values
-const firebaseConfig = {
-  apiKey: "AIzaSyCRAe_sI2Hawm9Vh70iWYhoO8nr38i_iWk",
-  authDomain: "mipripityweb.firebaseapp.com",
-  projectId: "mipripityweb",
-  storageBucket: "mipripityweb.firebasestorage.app",
-  messagingSenderId: "154891459103",
-  appId: "1:154891459103:web:122abe66be18f5e794532a",
-  measurementId: "G-LBDX7NP8P0"
-};
-
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
+});
 const auth = getAuth(app);
 
 // Create context
