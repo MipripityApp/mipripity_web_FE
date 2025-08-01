@@ -14,13 +14,7 @@
     "client": "webpack serve --mode development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "property",
-    "poll",
-    "voting",
-    "real estate",
-    "mipripity"
-  ],
+  "keywords": ["property", "poll", "voting", "real estate", "mipripity"],
   "author": "",
   "license": "ISC",
   "description": "A property polling website for Mipripity - Backend API",
@@ -78,10 +72,10 @@
     "react": "^18.2.0",
     "react-day-picker": "9.8.0",
     "react-dom": "^18.2.0",
-    "react-hook-form": "^7.54.1",
     "react-icons": "^5.0.1",
-    "react-resizable-panels": "^2.1.7",
     "react-router-dom": "^6.22.0",
+    "react-hook-form": "^7.54.1",
+    "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.0",
     "sonner": "^1.7.1",
     "styled-components": "^6.1.8",
