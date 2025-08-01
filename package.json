@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon index.js",
     "build": "echo 'Backend only - no build step required'",
-    "build:frontend": "cross-env NODE_ENV=production webpack --mode production",
+    "build:frontend": "webpack --mode production",
     "start": "node index.js",
     "lint": "next lint",
     "migrate": "node src/backend/utils/runMigrations.js",
