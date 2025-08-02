@@ -38,7 +38,14 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['.js', '.jsx']
+    extensions: ['.js', '.jsx'],
+    fallback: {
+      "fs": false,
+      "stream": false,
+      "path": false,
+      "crypto": false,
+      "zlib": false
+    }
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -77,9 +84,12 @@ module.exports = {
     historyApiFallback: true,
     port: 8080,
     hot: true,
-    proxy: {
-      '/api': 'http://localhost:3000'
-    }
+    proxy: [
+      {
+        context: ['/api'],
+        target: 'http://localhost:3000'
+      }
+    ]
   },
   performance: {
     hints: process.env.NODE_ENV === 'production' ? 'warning' : false,

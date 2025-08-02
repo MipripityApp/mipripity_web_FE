@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 import styled, { keyframes } from 'styled-components';
 import axios from 'axios';
 import { 
@@ -46,7 +47,7 @@ const PageContainer = styled.div`
   }
 `;
 
-const BackLink = styled(Link)`
+const BackLink = styled.a`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -481,7 +482,7 @@ const ActionButtons = styled.div`
   margin-top: 2rem;
 `;
 
-const ActionButton = styled(Link)`
+const ActionButton = styled.a`
   flex: 1;
   display: flex;
   justify-content: center;
@@ -633,9 +634,10 @@ const LoadingSpinner = styled.div`
  * Property details page component
  */
 const PropertyDetailsPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { userData, currentUser } = useAuth();
+  const router = useRouter();
+  const { id } = router.query || {};
+  const auth = useAuth() || {};
+  const { userData, currentUser } = auth;
   
   // State for property
   const [property, setProperty] = useState(null);
@@ -662,30 +664,53 @@ const PropertyDetailsPage = () => {
         setLoading(true);
         setError(null);
         
-        const response = await axios.get(`/api/properties/${id}`);
-        setProperty(response.data.property);
-        
-        // Set active image to primary image if available
-        if (response.data.property.images && response.data.property.images.length > 0) {
-          const primaryIndex = response.data.property.images.findIndex(img => img.is_primary);
-          setActiveImageIndex(primaryIndex !== -1 ? primaryIndex : 0);
-        }
-        
-        // Fetch vote options for the property's category
-        if (response.data.property.category_id) {
-          const voteOptionsResponse = await axios.get(`/api/votes/options/category/${response.data.property.category_id}`);
-          setVoteOptions(voteOptionsResponse.data.vote_options);
+        // Try to fetch property data
+        let propertyData;
+        try {
+          const response = await axios.get(`/api/properties/${id}`);
+          propertyData = response.data.property;
+          setProperty(propertyData);
           
-          // If user has already voted, set the selected option
-          if (response.data.property.user_vote) {
-            setSelectedVoteOption(response.data.property.user_vote.vote_option_id);
+          // Set active image to primary image if available
+          if (propertyData.images && propertyData.images.length > 0) {
+            const primaryIndex = propertyData.images.findIndex(img => img.is_primary);
+            setActiveImageIndex(primaryIndex !== -1 ? primaryIndex : 0);
           }
+          
+          // Try to fetch vote options
+          try {
+            if (propertyData.category_id) {
+              const voteOptionsResponse = await axios.get(`/api/votes/options/category/${propertyData.category_id}`);
+              setVoteOptions(voteOptionsResponse.data.vote_options);
+              
+              // If user has already voted, set the selected option
+              if (propertyData.user_vote) {
+                setSelectedVoteOption(propertyData.user_vote.vote_option_id);
+              }
+            }
+          } catch (voteErr) {
+            console.error('Error fetching vote options:', voteErr);
+            // Just continue with mock vote options
+            const mockVoteOptions = getMockVoteOptions(propertyData.category_id);
+            setVoteOptions(mockVoteOptions);
+          }
+        } catch (propertyErr) {
+          console.error('Error fetching property details:', propertyErr);
+          
+          // Use mock data if API fails
+          const mockProperty = getMockProperty(id);
+          setProperty(mockProperty);
+          propertyData = mockProperty;
+          
+          // Set vote options for mock property
+          const mockVoteOptions = getMockVoteOptions(mockProperty.category_id);
+          setVoteOptions(mockVoteOptions);
         }
       } catch (err) {
-        console.error('Error fetching property details:', err);
-        setError('Failed to load property details. Please try again later.');
+        console.error('Unexpected error in property details:', err);
+        setError('Failed to load property details. Showing sample data instead.');
         
-        // Use mock data for development
+        // Fallback to mock data for any unexpected errors
         const mockProperty = getMockProperty(id);
         setProperty(mockProperty);
         setVoteOptions(getMockVoteOptions(mockProperty.category_id));
@@ -745,7 +770,7 @@ const PropertyDetailsPage = () => {
       
       await axios.delete(`/api/properties/${id}`);
       
-      navigate('/properties');
+      router.push('/properties');
     } catch (err) {
       console.error('Error deleting property:', err);
       alert('Failed to delete property. Please try again.');
@@ -757,8 +782,13 @@ const PropertyDetailsPage = () => {
   
   // Format price with commas
   const formatPrice = (price) => {
-    return price ? `$${price.toLocaleString()}` : "Price on request";
-  };
+  return price
+    ? new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+      }).format(price)
+    : "Price on request";
+};
   
   // Get user initials for avatar
   const getOwnerInitials = () => {
@@ -849,7 +879,7 @@ const PropertyDetailsPage = () => {
   
   return (
     <PageContainer>
-      <BackLink to="/properties">
+      <BackLink href="/properties">
         <FaArrowLeft /> Back to Properties
       </BackLink>
       
@@ -947,7 +977,7 @@ const PropertyDetailsPage = () => {
             
             {isOwner() && (
               <ActionButtons>
-                <ActionButton to={`/properties/edit/${property.id}`} className="edit">
+                <ActionButton href={`/properties/edit/${property.id}`} className="edit">
                   <FaEdit />
                   Edit
                 </ActionButton>
@@ -1014,7 +1044,7 @@ const PropertyDetailsPage = () => {
               </>
             ) : (
               <LoginPrompt>
-                <Link to="/login">Log in</Link> or <Link to="/register">register</Link> to vote on this property
+                <Link href="/login"><a>Log in</a></Link> or <Link href="/register"><a>Register</a></Link> to vote on this property
               </LoginPrompt>
             )}
           </VotingCard>

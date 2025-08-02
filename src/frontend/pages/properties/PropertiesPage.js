@@ -508,8 +508,14 @@ const PropertiesPage = () => {
   
   // Format price with commas
   const formatPrice = (price) => {
-    return price ? `$${price.toLocaleString()}` : "Price on request";
-  };
+  return price
+    ? new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+      }).format(price)
+    : "Price on request";
+};
+
   
   // Generate page numbers for pagination
   const getPageNumbers = () => {

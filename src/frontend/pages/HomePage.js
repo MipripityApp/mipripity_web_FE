@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
@@ -584,8 +585,13 @@ const HomePage = () => {
   
   // Format price with commas
   const formatPrice = (price) => {
-    return price ? `$${price.toLocaleString()}` : "Price on request";
-  };
+  return price
+    ? new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+      }).format(price)
+    : "Price on request";
+};
   
   return (
     <PageContainer>

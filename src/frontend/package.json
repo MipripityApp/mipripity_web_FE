@@ -8,11 +8,7 @@
     "build": "echo 'Backend only - no build step required'",
     "build:frontend": "webpack --mode production",
     "start": "node index.js",
-    "lint": "next lint",
-    "migrate": "node src/backend/utils/runMigrations.js",
-    "seed": "node src/backend/utils/seedData.js",
-    "client": "webpack serve --mode production",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "next lint"
   },
   "keywords": ["property", "poll", "voting", "real estate", "mipripity"],
   "author": "",
