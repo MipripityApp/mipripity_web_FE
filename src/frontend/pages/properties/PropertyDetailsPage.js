@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import styled, { keyframes } from 'styled-components';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import styled, { keyframes, css } from 'styled-components';
 import axios from 'axios';
 import { 
   FaMapMarkerAlt, 
@@ -40,14 +39,14 @@ const PageContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  animation: ${fadeIn} 0.5s ease-out;
+  animation: ${css`${fadeIn}`} 0.5s ease-out;
   
   @media (max-width: 768px) {
     padding: 1rem;
   }
 `;
 
-const BackLink = styled.a`
+const BackLink = styled(Link)`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -482,7 +481,7 @@ const ActionButtons = styled.div`
   margin-top: 2rem;
 `;
 
-const ActionButton = styled.a`
+const ActionButton = styled(Link)`
   flex: 1;
   display: flex;
   justify-content: center;
@@ -548,7 +547,7 @@ const Modal = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: ${fadeIn} 0.3s ease;
+  animation: ${css`${fadeIn}`} 0.3s ease;
 `;
 
 const ModalContent = styled.div`
@@ -634,8 +633,9 @@ const LoadingSpinner = styled.div`
  * Property details page component
  */
 const PropertyDetailsPage = () => {
-  const router = useRouter();
-  const { id } = router.query || {};
+  const params = useParams();
+  const navigate = useNavigate();
+  const id = params.id;
   const auth = useAuth() || {};
   const { userData, currentUser } = auth;
   
@@ -770,7 +770,7 @@ const PropertyDetailsPage = () => {
       
       await axios.delete(`/api/properties/${id}`);
       
-      router.push('/properties');
+      navigate('/properties');
     } catch (err) {
       console.error('Error deleting property:', err);
       alert('Failed to delete property. Please try again.');
@@ -818,9 +818,9 @@ const PropertyDetailsPage = () => {
       current_worth: 350000,
       year_of_construction: 2010,
       images: [
-        { id: 1, property_id: parseInt(id), image_url: "https://via.placeholder.com/800x600?text=Property+1", is_primary: true },
-        { id: 2, property_id: parseInt(id), image_url: "https://via.placeholder.com/800x600?text=Property+2", is_primary: false },
-        { id: 3, property_id: parseInt(id), image_url: "https://via.placeholder.com/800x600?text=Property+3", is_primary: false }
+        { id: 1, property_id: parseInt(id), image_url: "https://picsum.photos/id/1027/600/400", is_primary: true },
+        { id: 2, property_id: parseInt(id), image_url: "https://picsum.photos/id/1011/600/400", is_primary: false },
+        { id: 3, property_id: parseInt(id), image_url: "https://picsum.photos/id/1005/600/400", is_primary: false }
       ],
       votes: [
         { id: 1, name: "Rent", count: 15 },
@@ -879,7 +879,7 @@ const PropertyDetailsPage = () => {
   
   return (
     <PageContainer>
-      <BackLink href="/properties">
+      <BackLink to="/properties">
         <FaArrowLeft /> Back to Properties
       </BackLink>
       
@@ -938,10 +938,7 @@ const PropertyDetailsPage = () => {
             
             <DetailItem>
               <DetailLabel>Price</DetailLabel>
-              <DetailValue>
-                <FaDollarSign />
-                {formatPrice(property.current_worth)}
-              </DetailValue>
+              <DetailValue>{formatPrice(property.current_worth)}</DetailValue>
             </DetailItem>
             
             {property.year_of_construction && (
@@ -966,10 +963,7 @@ const PropertyDetailsPage = () => {
         
         <PropertySidebar>
           <PropertyInfo>
-            <PropertyPrice>
-              <FaDollarSign />
-              {formatPrice(property.current_worth)}
-            </PropertyPrice>
+            <PropertyPrice>{formatPrice(property.current_worth)}</PropertyPrice>
             
             <PropertyCategory>
               {property.category_name}
@@ -977,7 +971,7 @@ const PropertyDetailsPage = () => {
             
             {isOwner() && (
               <ActionButtons>
-                <ActionButton href={`/properties/edit/${property.id}`} className="edit">
+                <ActionButton to={`/properties/edit/${property.id}`} className="edit">
                   <FaEdit />
                   Edit
                 </ActionButton>
@@ -1044,7 +1038,7 @@ const PropertyDetailsPage = () => {
               </>
             ) : (
               <LoginPrompt>
-                <Link href="/login"><a>Log in</a></Link> or <Link href="/register"><a>Register</a></Link> to vote on this property
+                <Link to="/login">Log in</Link> or <Link to="/register">Register</Link> to vote on this property
               </LoginPrompt>
             )}
           </VotingCard>

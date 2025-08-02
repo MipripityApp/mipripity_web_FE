@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { FaEnvelope, FaLock, FaSignInAlt, FaExclamationCircle } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -23,7 +23,7 @@ const PageContainer = styled.div`
   align-items: center;
   min-height: calc(100vh - 200px);
   padding: 2rem;
-  animation: ${fadeIn} 0.5s ease-out;
+  animation: ${css`${fadeIn}`} 0.5s ease-out;
 `;
 
 const LoginCard = styled.div`
@@ -141,7 +141,7 @@ const SubmitButton = styled.button`
     transform: translateY(0);
   }
   
-  ${props => props.isLoading ? '' : `
+  ${props => props.isLoading ? '' : css`
     &:hover {
       animation: ${pulse} 1.5s infinite;
     }

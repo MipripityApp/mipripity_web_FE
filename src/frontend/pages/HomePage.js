@@ -480,60 +480,60 @@ const HomePage = () => {
   
   // Mock data for initial render or when API is not available
   const mockProperties = [
-    {
-      id: 1,
-      title: "Modern Apartment in Downtown",
-      location: "New York, NY",
-      category_name: "Residential",
-      current_worth: 350000,
-      primary_image: "https://via.placeholder.com/300x200?text=Apartment",
-      vote_count: 24
-    },
-    {
-      id: 2,
-      title: "Commercial Space in Business District",
-      location: "San Francisco, CA",
-      category_name: "Commercial",
-      current_worth: 1200000,
-      primary_image: "https://via.placeholder.com/300x200?text=Commercial",
-      vote_count: 18
-    },
-    {
-      id: 3,
-      title: "Beachfront Villa with Ocean View",
-      location: "Miami, FL",
-      category_name: "Residential",
-      current_worth: 750000,
-      primary_image: "https://via.placeholder.com/300x200?text=Villa",
-      vote_count: 32
-    },
-    {
-      id: 4,
-      title: "Development Land with Permits",
-      location: "Austin, TX",
-      category_name: "Land",
-      current_worth: 500000,
-      primary_image: "https://via.placeholder.com/300x200?text=Land",
-      vote_count: 15
-    },
-    {
-      id: 5,
-      title: "Retail Space in Shopping Center",
-      location: "Chicago, IL",
-      category_name: "Commercial",
-      current_worth: 880000,
-      primary_image: "https://via.placeholder.com/300x200?text=Retail",
-      vote_count: 27
-    },
-    {
-      id: 6,
-      title: "Construction Materials Bundle",
-      location: "Denver, CO",
-      category_name: "Material",
-      current_worth: 25000,
-      primary_image: "https://via.placeholder.com/300x200?text=Materials",
-      vote_count: 8
-    }
+        {
+        id: 1,
+        title: "Modern Apartment in Downtown",
+        location: "New York, NY",
+        category_name: "Residential",
+        current_worth: 350000,
+        primary_image: "https://picsum.photos/id/1025/300/200", // Urban Apartment
+        vote_count: 24
+      },
+      {
+        id: 2,
+        title: "Commercial Space in Business District",
+        location: "San Francisco, CA",
+        category_name: "Commercial",
+        current_worth: 1200000,
+        primary_image: "https://picsum.photos/id/1003/300/200", // Skyscraper
+        vote_count: 18
+      },
+      {
+        id: 3,
+        title: "Beachfront Villa with Ocean View",
+        location: "Miami, FL",
+        category_name: "Residential",
+        current_worth: 750000,
+        primary_image: "https://picsum.photos/id/1018/300/200", // Beach House
+        vote_count: 32
+      },
+      {
+        id: 4,
+        title: "Development Land with Permits",
+        location: "Austin, TX",
+        category_name: "Land",
+        current_worth: 500000,
+        primary_image: "https://picsum.photos/id/1043/300/200", // Open Land
+        vote_count: 15
+      },
+      {
+        id: 5,
+        title: "Retail Space in Shopping Center",
+        location: "Chicago, IL",
+        category_name: "Commercial",
+        current_worth: 880000,
+        primary_image: "https://picsum.photos/id/1032/300/200", // Storefront
+        vote_count: 27
+      },
+      {
+        id: 6,
+        title: "Construction Materials Bundle",
+        location: "Denver, CO",
+        category_name: "Material",
+        current_worth: 25000,
+        primary_image: "https://picsum.photos/id/1080/300/200", // Construction supplies
+        vote_count: 8
+      }
   ];
   
   // Categories data
